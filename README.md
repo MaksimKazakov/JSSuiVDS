@@ -12,8 +12,8 @@
 
 1. Создать сервер на Ubuntu ( мин 4Gb ОЗУ)
 2. Зайти под root
-3. `git clone `
-4. `cd `
+3. `git clone https://github.com/MaksimKazakov/JSSuiVDS.git`
+4. `cd JSSuiVDS`
 5. `chmod +x build.sh`
 6. `./build.sh`
 
