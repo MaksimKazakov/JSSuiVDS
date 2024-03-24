@@ -78,17 +78,17 @@ echo "$(date) Checking Docker Compose version" |& tee -a ${LOG_FILE_NAME}
 docker-compose version
 
 # Installing Docker Compose as Docker plugin
-echo "$(date) Installing Docker Compose as Docker plugin..." |& tee -a ${LOG_FILE_NAME}
-DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
-mkdir -p $DOCKER_CONFIG/cli-plugins
-curl -SL https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
-chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
-sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
-docker compose version
+# echo "$(date) Installing Docker Compose as Docker plugin..." |& tee -a ${LOG_FILE_NAME}
+# DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+# mkdir -p $DOCKER_CONFIG/cli-plugins
+# curl -SL https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
+# chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+# sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+# docker compose version
 
 # Pulling Chrome images for Selenoid
 echo "Pulling Chrome images for Selenoid" |& tee -a ${LOG_FILE_NAME}
-CHROME_RELEASES="120 121 122"
+CHROME_RELEASES="93 94 95"
 for RELEASE in $CHROME_RELEASES
 do
     echo "Pulling Chrome ${RELEASE}.0" |& tee -a ${LOG_FILE_NAME}
@@ -102,7 +102,6 @@ cd /home/${NEW_USER}/test-bed && docker-compose up -d
 echo "Waiting 60 seconds for Jenkins to start up..." |& tee -a ${LOG_FILE_NAME}
 sleep 60
 
-clear
 
 JENKINS_PASSWORD=$(docker exec -t test-bed_jenkins_1 cat /var/jenkins_home/secrets/initialAdminPassword)
 
@@ -111,10 +110,4 @@ echo "Selenoid's status: $(curl $IP_ADDRESS:4444/wd/hub/status)"|& tee -a ${LOG_
 echo "Selenoid's UI status: $(curl $IP_ADDRESS:8080/status)"|& tee -a ${LOG_FILE_NAME}
 echo "Now, try to open Jenkins at: http://$IP_ADDRESS:8888 and use $JENKINS_PASSWORD"
 
-TIME_END=$(date)
-
-echo "QA test bed setup has been completed" |& tee -a ${LOG_FILE_NAME}
-echo "Now, you need to configure Jenkins and you are ready to go." |& tee -a ${LOG_FILE_NAME}
-echo "All logs of this script are stored in '${LOG_FILE_NAME}', so if you missed something, check the log" |& tee -a ${LOG_FILE_NAME}
-echo "Started:  $TIME_START" |& tee -a ${LOG_FILE_NAME}
-echo "Finished: $TIME_END" |& tee -a ${LOG_FILE_NAME}
+TIME
