@@ -46,7 +46,7 @@ chown -R ${NEW_USER}:users /home/${NEW_USER}/.ssh
 
 echo "$(date) Права $(ls -a /home/${NEW_USER}/.ssh) обновлены" |& tee -a ${LOG_FILE_NAME}
 
-# installing new software
+# установка софта
 
 echo "Общее обновление"
 apt update && apt upgrade -y |& tee -a ${LOG_FILE_NAME}
@@ -64,7 +64,7 @@ echo "$(date) $(java --version)" |& tee -a ${LOG_FILE_NAME}
 echo "Текущая версия Java $(java --version)" |& tee -a ${LOG_FILE_NAME}
 
 cat << EOF >> /etc/environment
-JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 EOF
 
 source /etc/environment
