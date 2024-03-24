@@ -88,7 +88,7 @@ docker-compose version
 
 # Pulling Chrome images for Selenoid
 echo "Pulling Chrome images for Selenoid" |& tee -a ${LOG_FILE_NAME}
-CHROME_RELEASES="93 94 95"
+CHROME_RELEASES="120 121 122"
 for RELEASE in $CHROME_RELEASES
 do
     echo "Pulling Chrome ${RELEASE}.0" |& tee -a ${LOG_FILE_NAME}
