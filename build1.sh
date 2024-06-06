@@ -33,14 +33,14 @@ apt update && apt upgrade -y |& tee -a ${LOG_FILE_NAME}
 echo "$(date) Установка Midnight Commander"
 apt install mc -y |& tee -a ${LOG_FILE_NAME}
 
-echo "$(date) Установка JDK - 17" |& tee -a ${LOG_FILE_NAME}
-apt install openjdk-17-jdk -y |& tee -a ${LOG_FILE_NAME}
+echo "$(date) Установка JDK - 21" |& tee -a ${LOG_FILE_NAME}
+apt install openjdk-21-jdk -y |& tee -a ${LOG_FILE_NAME}
 
 echo "$(date) $(java --version)" |& tee -a ${LOG_FILE_NAME}
 echo "Текущая версия Java $(java --version)" |& tee -a ${LOG_FILE_NAME}
 
 cat << EOF >> /etc/environment
-JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
 EOF
 
 source /etc/environment
