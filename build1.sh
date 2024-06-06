@@ -25,29 +25,24 @@ chown -R root:root /home/root/.ssh
 
 echo "$(date) Права $(ls -a /home/root/.ssh) обновлены" |& tee -a ${LOG_FILE_NAME}
 
-# установка софта
+# Установка JDK 17
+echo "$(date) Установка JDK - 17" |& tee -a ${LOG_FILE_NAME}
+apt install openjdk-17-jdk -y |& tee -a ${LOG_FILE_NAME}
 
+# Установка Jenkins 2.440.3
+echo "$(date) Установка Jenkins 2.440.3" |& tee -a ${LOG_FILE_NAME}
+wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add -
+echo "deb https://pkg.jenkins.io/debian-stable binary/" | sudo tee -a /etc/apt/sources.list.d/jenkins.list
+apt update && apt install jenkins=2.440.3 -y |& tee -a ${LOG_FILE_NAME}
+
+# Установка остального ПО
 echo "Общее обновление"
 apt update && apt upgrade -y |& tee -a ${LOG_FILE_NAME}
 
 echo "$(date) Установка Midnight Commander"
 apt install mc -y |& tee -a ${LOG_FILE_NAME}
 
-echo "$(date) Установка JDK - 17" |& tee -a ${LOG_FILE_NAME}
-apt install openjdk-17-jdk -y |& tee -a ${LOG_FILE_NAME}
-
-echo "$(date) $(java --version)" |& tee -a ${LOG_FILE_NAME}
-echo "Текущая версия Java $(java --version)" |& tee -a ${LOG_FILE_NAME}
-
-cat << EOF >> /etc/environment
-JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-EOF
-
-source /etc/environment
-
-echo "$(date) Проверка JAVA_HOME " |& tee -a ${LOG_FILE_NAME}
-echo "$(date) JAVA_HOME $(echo $JAVA_HOME)" |& tee -a ${LOG_FILE_NAME}
-
+# Установка Docker и Docker Compose
 echo "$(date) Установка docker и запуск" |& tee -a ${LOG_FILE_NAME}
 curl -sSL https://get.docker.com | sh
 docker version >> ${LOG_FILE_NAME}
@@ -55,10 +50,8 @@ docker version >> ${LOG_FILE_NAME}
 echo "$(date) Установка docker-compose..." |& tee -a ${LOG_FILE_NAME}
 apt-get install docker-compose -y
 
+# Установка Docker Compose 2.5.0
 echo "$(date) Версия docker-compose: " |& tee -a ${LOG_FILE_NAME}
-docker-compose version
-
-echo "$(date) Установка docker compose как docker plug-in " |& tee -a ${LOG_FILE_NAME}
 DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
 mkdir -p $DOCKER_CONFIG/cli-plugins
 curl -SL https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
@@ -67,13 +60,9 @@ chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
 sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 docker compose version
 
-cp -r ./test-bed /home/root |& tee -a ${LOG_FILE_NAME}
-chown -R root:root /home/root/test-bed |& tee -a ${LOG_FILE_NAME}
-
-# Скачивание Хромов
-
+# Скачивание Chrome images для Selenoid
 echo "Скачивается chrome images для selenoid" |& tee -a ${LOG_FILE_NAME}
-CHROME_RELEASES="123 124 125"
+CHROME_RELEASES="120 121 122"
 
 for RELEASE in $CHROME_RELEASES
 do
@@ -81,6 +70,7 @@ do
     docker pull selenoid/vnc:chrome_${RELEASE}.0
 done
 
+# Запуск Jenkins и Selenoid
 cd /home/root/test-bed && docker-compose up -d
 
 echo "Подождите 1 минуту"
