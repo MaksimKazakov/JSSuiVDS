@@ -4,19 +4,19 @@
         "versions": {
             "120.0": {
                 "env": ["LANG=ru_RU.UTF-8", "LANGUAGE=ru:en", "LC_ALL=ru_RU.UTF-8", "TZ=Europe/Moscow"],
-                "image": "selenoid/vnc:chrome_120.0",
+                "image": "selenoid/vnc:chrome_123.0",
                 "tmpfs": { "/tmp": "size=512m" },
                 "port": "4444"
             },
             "121.0": {
                 "env": ["LANG=ru_RU.UTF-8", "LANGUAGE=ru:en", "LC_ALL=ru_RU.UTF-8", "TZ=Europe/Moscow"],
-                "image": "selenoid/vnc:chrome_121.0",
+                "image": "selenoid/vnc:chrome_124.0",
                 "tmpfs": { "/tmp": "size=512m" },
                 "port": "4444"
             },
             "122.0": {
                 "env": ["LANG=ru_RU.UTF-8", "LANGUAGE=ru:en", "LC_ALL=ru_RU.UTF-8", "TZ=Europe/Moscow"],
-                "image": "selenoid/vnc:chrome_122.0",
+                "image": "selenoid/vnc:chrome_125.0",
                 "tmpfs": { "/tmp": "size=512m" },
                 "port": "4444"
             }

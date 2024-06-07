@@ -14,7 +14,9 @@ echo "Установим /home directory" |& tee -a ${LOG_FILE_NAME}
 ls /home/ |& tee -a ${LOG_FILE_NAME}
 
 echo "Установим ключи ssh /root/.ssh"
+mkdir -p /home/root/.ssh
 cp -a /root/.ssh /home/root
+
 
 echo "$(date) $(ls -a /home/root/.ssh) добавлено из root" |& tee -a ${LOG_FILE_NAME}
 
@@ -30,17 +32,17 @@ echo "$(date) Права $(ls -a /home/root/.ssh) обновлены" |& tee -a 
 echo "Общее обновление"
 apt update && apt upgrade -y |& tee -a ${LOG_FILE_NAME}
 
-echo "$(date) Установка Midnight Commander"
-apt install mc -y |& tee -a ${LOG_FILE_NAME}
+#echo "$(date) Установка Midnight Commander"
+#apt install mc -y |& tee -a ${LOG_FILE_NAME}
 
-echo "$(date) Установка JDK - 21" |& tee -a ${LOG_FILE_NAME}
-apt install openjdk-21-jdk -y |& tee -a ${LOG_FILE_NAME}
+echo "$(date) Установка JDK - 11" |& tee -a ${LOG_FILE_NAME}
+apt install openjdk-11-jdk -y |& tee -a ${LOG_FILE_NAME}
 
 echo "$(date) $(java --version)" |& tee -a ${LOG_FILE_NAME}
 echo "Текущая версия Java $(java --version)" |& tee -a ${LOG_FILE_NAME}
 
 cat << EOF >> /etc/environment
-JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 EOF
 
 source /etc/environment
@@ -58,14 +60,33 @@ apt-get install docker-compose -y
 echo "$(date) Версия docker-compose: " |& tee -a ${LOG_FILE_NAME}
 docker-compose version
 
-echo "$(date) Установка docker compose как docker plug-in " |& tee -a ${LOG_FILE_NAME}
-DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
-mkdir -p $DOCKER_CONFIG/cli-plugins
-curl -SL https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
+# echo "$(date) Установка docker compose как docker plug-in " |& tee -a ${LOG_FILE_NAME}
+# DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+# mkdir -p $DOCKER_CONFIG/cli-plugins
+# curl -SL https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
 
-chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
-sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
-docker compose version
+# chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+# sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+# docker compose version
+
+# Записываем текущую дату и время, а также сообщение об установке Docker Compose как плагина Docker в лог-файл
+echo "$(date) Установка docker compose как docker plug-in " |& tee -a ${LOG_FILE_NAME}
+
+# Устанавливаем переменную окружения DOCKER_CONFIG в значение по умолчанию ($HOME/.docker), если она не задана
+DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+
+# Создаем директорию для плагинов Docker CLI, если она еще не существует
+mkdir -p $DOCKER_CONFIG/cli-plugins
+
+# Скачиваем бинарный файл Docker Compose для Linux (x86_64) и сохраняем его в директорию плагинов CLI
+if curl -fSL https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose; then
+  # Делаем бинарный файл Docker Compose исполняемым, если скачивание прошло успешно
+  chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+  echo "Docker Compose успешно установлен как плагин." |& tee -a ${LOG_FILE_NAME}
+else
+  # Если скачивание не удалось, выводим сообщение об ошибке
+  echo "Ошибка: не удалось скачать docker-compose." |& tee -a ${LOG_FILE_NAME}
+fi
 
 cp -r ./test-bed /home/root |& tee -a ${LOG_FILE_NAME}
 chown -R root:root /home/root/test-bed |& tee -a ${LOG_FILE_NAME}
