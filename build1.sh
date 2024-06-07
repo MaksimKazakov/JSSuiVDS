@@ -94,7 +94,7 @@ chown -R root:root /home/root/test-bed |& tee -a ${LOG_FILE_NAME}
 # Скачивание Хромов
 
 echo "Скачивается chrome images для selenoid" |& tee -a ${LOG_FILE_NAME}
-CHROME_RELEASES="125"
+CHROME_RELEASES="123 124 125"
 
 for RELEASE in $CHROME_RELEASES
 do
