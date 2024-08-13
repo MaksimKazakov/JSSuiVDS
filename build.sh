@@ -103,23 +103,28 @@ echo "Пароль Jenkins при первом запуске: ${JENKINS_PASSWOR
 
 echo "Selenoid's статус: $(curl $IP_ADDRESS:4444/wd/hub/status)"|& tee -a ${LOG_FILE_NAME}
 echo "Selenoid's UI статус: $(curl $IP_ADDRESS:8080/status)"|& tee -a ${LOG_FILE_NAME}
-
+echo
+echo
 echo "Теперь можно проверить Jenkins на: http://$IP_ADDRESS:8888 с паролем $JENKINS_PASSWORD"
-
+echo
+echo
 TIME_END=$(date)
 echo "*************************************************************************"
-echo "*****************       QA стенд готов          *************************"
+echo "****************   Продолжим настройку стенда   *************************"
 echo "*************************************************************************"
-
-echo "Теперь нужно настроить Jenkins"
+echo
+echo "Настроим Jenkins"
 echo "1. Остановка контейнеров docker-compose" |& tee -a ${LOG_FILE_NAME}
-
+echo
+echo
 # Перейти в директорию с docker-compose.yml
 cd /home/${NEW_USER}/test-bed
 
 docker-compose stop |& tee -a ${LOG_FILE_NAME}
 
 echo "2. Проверка состояния контейнеров после остановки:" |& tee -a ${LOG_FILE_NAME}
+echo
+echo
 docker ps -a |& tee -a ${LOG_FILE_NAME}
 
 if [ "$(docker ps -q)" == "" ]; then
@@ -129,8 +134,12 @@ else
     docker ps |& tee -a ${LOG_FILE_NAME}
 fi
 
-echo "3. Войти под ${NEW_USER} с паролем ${NEW_USER_PASS}"
+echo "3. Войти под ${NEW_USER} с паролем ${NEW_USER_PASS} в директорию /home/${NEW_USER}/test-bed"
+echo
+echo
 echo "4. Выполнить команду 'docker-compose up -d'"
+echo
+echo
 
 echo "*************************************************************************"
 echo "*****************         Что сделано           *************************"
