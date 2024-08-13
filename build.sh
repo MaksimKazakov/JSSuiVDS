@@ -108,7 +108,7 @@ chown -R ${NEW_USER}:users /home/${NEW_USER}/test-bed |& tee -a ${LOG_FILE_NAME}
 
 echo "Скачивается chrome images для selenoid" |& tee -a ${LOG_FILE_NAME}
 
-CHROME_RELEASES="120 121 122"
+CHROME_RELEASES="127 126 125"
 
 for RELEASE in $CHROME_RELEASES
 do
@@ -146,17 +146,34 @@ echo "Теперь можно проверить Jenkins на: http://$IP_ADDRES
 
 
 TIME_END=$(date)
+echo "*************************************************************************"
+echo "*****************       QA стенд готов          *************************"
+echo "*************************************************************************"
 
-echo "QA стенд готов"
 echo "Теперь нужно настроить Jenkins"
-echo "1. Остановить docker-compose"
-echo "2. войти под ${NEW_USER} с паролем ${NEW_USER_PASSWORD}"
-echo "3. Выполнить команду "docker-compose up -d command""
+echo "1. Остановка контейнеров docker-compose" |& tee -a ${LOG_FILE_NAME}
+docker-compose stop |& tee -a ${LOG_FILE_NAME}
 
-echo "Что сделано;"
+echo "2. Проверка состояния контейнеров после остановки:" |& tee -a ${LOG_FILE_NAME}
+docker ps -a |& tee -a ${LOG_FILE_NAME}
+
+if [ "$(docker ps -q)" == "" ]; then
+    echo "Все контейнеры успешно остановлены." |& tee -a ${LOG_FILE_NAME}
+else
+    echo "Некоторые контейнеры все еще работают:" |& tee -a ${LOG_FILE_NAME}
+    docker ps |& tee -a ${LOG_FILE_NAME}
+fi
+
+echo "3. Войти под ${NEW_USER} с паролем ${NEW_USER_PASSWORD}"
+echo "4. Выполнить команду "docker-compose up -d command""
+
+echo "*************************************************************************"
+echo "*****************         Что сделано           *************************"
+echo "*************************************************************************"
+
 echo "Создан новый пользователь'${NEW_USER}' с паролем '${NEW_USER_PASS}'"
 echo "Файлы в : /home/$NEW_USER/test-bed" |& tee -a ${LOG_FILE_NAME}
-echo "jenkins, selenoid, selenoid-ui docker images запущены"
+
 echo "jenkins на адресе ${IP_ADDRESS}:8888" |& tee -a ${LOG_FILE_NAME}
 echo "selenoid на адресе ${IP_ADDRESS}:4444/wd/hub" |& tee -a ${LOG_FILE_NAME}
 echo "selenoid-ui на адресе ${IP_ADDRESS}:8080" |& tee -a ${LOG_FILE_NAME}
