@@ -17,4 +17,7 @@
 5. `chmod +x build1.sh`
 6. `./build1.sh`
 7. Следовать указаниям на экране
-После установки выполнить 
+8. После установки Jenkins установить плагины (http://${IP_ADDRESS}:8888/manage/pluginManager/available):
+    - Allure
+    - Text File Operations
+    
