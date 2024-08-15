@@ -31,7 +31,7 @@ echo
 while true; do
     read -s -p "$(echo -e "\e[33mСоздайте пароль для пользователя ${NEW_USER}: \e[0m")" NEW_USER_PASS
     echo
-    read -s -p "$(echo -е "\e[33mПовторите пароль: \е[0м")" NEW_USER_PASS_CONFIRM
+    read -s -p "$(echo -e "\e[33mПовторите пароль: \e[0m")" NEW_USER_PASS_CONFIRM
     echo
     if [ "$NEW_USER_PASS" == "$NEW_USER_PASS_CONFIRM" ]; then
         break
@@ -45,18 +45,18 @@ echo
 echo -e "\e[33mУстановим ключи ssh для /home/${NEW_USER}\e[0m" |& tee -a ${LOG_FILE_NAME}
 cp -a /root/.ssh /home/${NEW_USER}
 chown -R ${NEW_USER}:users /home/${NEW_USER}/.ssh
-echo -е "\e[32m$(date) Права /home/${NEW_USER}/.ssh обновлены\e[0м" |& tee -a ${LOG_FILE_NAME}
+echo -е "\e[32m$(date) Права /home/${NEW_USER}/.ssh обновлены\e[0m" |& tee -a ${LOG_FILE_NAME}
 
 # Установка софта
 echo "*************************************************************************"
-echo -е "**************   \e[32mУстанови Java, Docker, Selenoid\e[0м   ***********************"
+echo -е "**************   \e[32mУстановим Java, Docker, Selenoid\e[0m   ***********************"
 echo "*************************************************************************"
 echo
-echo -е "\e[33mОбщее обновление\e[0м"
+echo -е "\e[33mОбщее обновление\e[0m"
 apt update && apt upgrade -y |& tee -a ${LOG_FILE_NAME}
 
 # Установка JDK
-echo -е "\e[34$(date) Установка JDK - 17\e[0м" |& tee -a ${LOG_FILE_NAME}
+echo -е "\e[34$(date) Установка JDK - 17\e[0m" |& tee -a ${LOG_FILE_NAME}
 apt install openjdk-17-jdk -y |& tee -a ${LOG_FILE_NAME}
 echo "$(date) $(java --version)" |& tee -a ${LOG_FILE_NAME}
 echo "Текущая версия Java $(java --version)" |& tee -a ${LOG_FILE_NAME}
@@ -88,30 +88,30 @@ cp -r ./test-bed /home/${NEW_USER} |& tee -a ${LOG_FILE_NAME}
 chown -R ${NEW_USER}:users /home/${NEW_USER}/test-bed |& tee -a ${LOG_FILE_NAME}
 
 # Скачивание Chrome images для Selenoid
-echo -е "\e[32mСкачивается chrome images для selenoid\e[0м" |& tee -a ${LOG_FILE_NAME}
+echo -е "\e[32mСкачивается chrome images для selenoid\e[0m" |& tee -a ${LOG_FILE_NAME}
 
 CHROME_RELEASES="127 126 125"
 for RELEASE in $CHROME_RELEASES
 do
-    echo "\e[32mУстановка chrome ${RELEASE}.0\e[0м" |& tee -a ${LOG_FILE_NAME}
+    echo "\e[32mУстановка chrome ${RELEASE}.0\e[0m" |& tee -a ${LOG_FILE_NAME}
     docker pull selenoid/vnc:chrome_${RELEASE}.0
 done
 
 runuser -l ${NEW_USER} -c 'cd ~/test-bed && docker-compose up -d'
 
-echo -е "\e[32mПодождите 1 минуту.... Идет процесс установки....\e[0м"
+echo -е "\e[32mПодождите 1 минуту.... Идет процесс установки....\e[0m"
 sleep 30
 clear
 echo
 
 JENKINS_PASSWORD=$(docker exec -t test-bed_jenkins_1 cat /var/jenkins_home/secrets/initialAdminPassword)
-echo -е "\e[32mПароль Jenkins при первом запуске: ${JENKINS_PASSWORD}\e[0м" |& tee -a ${LOG_FILE_NAME}
+echo -е "\e[32mПароль Jenkins при первом запуске: ${JENKINS_PASSWORD}\e[0m" |& tee -a ${LOG_FILE_NAME}
 
-echo -е "\e[32mSelenoid's статус: $(curl $IP_ADDRESS:4444/wd/hub/status)\e[0м"|& tee -a ${LOG_FILE_NAME}
-echo -е "\e[32mSelenoid's UI статус: $(curl $IP_ADDRESS:8080/status)\e[0м"|& tee -а ${LOG_FILE_NAME}
+echo -е "\e[32mSelenoid's статус: $(curl $IP_ADDRESS:4444/wd/hub/status)\e[0m"|& tee -a ${LOG_FILE_NAME}
+echo -е "\e[32mSelenoid's UI статус: $(curl $IP_ADDRESS:8080/status)\e[0m"|& tee -а ${LOG_FILE_NAME}
 echo
 echo
-echo -е "\e[32mТеперь можно проверить Jenkins на: http://$IP_ADDRESS:8888 с паролем $JENKINS_PASSWORD\e[0м"
+echo -е "\e[32mТеперь можно проверить Jenkins на: http://$IP_ADDRESS:8888 с паролем $JENKINS_PASSWORD\e[0m"
 echo
 echo
 TIME_END=$(date)
@@ -119,8 +119,8 @@ echo "*************************************************************************"
 echo "****************   Продолжим настройку стенда   *************************"
 echo "*************************************************************************"
 echo
-echo -е "\e[32mНастроим Jenkins\e[0м"
-echo -е "\e[32m1. Остановка контейнеров docker-compose\e[0м" |& tee -а ${LOG_FILE_NAME}
+echo -е "\e[32mНастроим Jenkins\e[0m"
+echo -е "\e[32m1. Остановка контейнеров docker-compose\e[0m" |& tee -а ${LOG_FILE_NAME}
 echo
 echo
 # Перейти в директорию с docker-compose.yml
@@ -128,22 +128,22 @@ cd /home/${NEW_USER}/test-bed
 
 docker-compose stop |& tee -а ${LOG_FILE_NAME}
 
-echo -е "\e[32m2. Проверка состояния контейнеров после остановки:\e[0м" |& tee -а ${LOG_FILE_NAME}
+echo -е "\e[32m2. Проверка состояния контейнеров после остановки:\e[0m" |& tee -а ${LOG_FILE_NAME}
 echo
 echo
 docker ps -a |& tee -а ${LOG_FILE_NAME}
 
-if [ "$(docker ps -q)" == ""; then
-    echo -е "\e[32mВсе контейнеры успешно остановлены.\e[0м" |& tee -а ${LOG_FILE_NAME}
+if [ "$(docker ps -q)" == "" ]; then
+    echo -е "\e[32mВсе контейнеры успешно остановлены.\e[0m" |& tee -а ${LOG_FILE_NAME}
 else
-    echo -е "Некоторые контейнеры все еще работают:\e[0м" |& tee -а ${LOG_FILE_NAME}
+    echo -е "Некоторые контейнеры все еще работают:\e[0m" |& tee -а ${LOG_FILE_NAME}
     docker ps |& tee -а ${LOG_FILE_NAME}
 fi
 
-echo -е "\e[32m3. Войти под ${NEW_USER} с паролем ${NEW_USER_PASS} в директорию /home/${NEW_USER}/test-bed\e[0м"
+echo -е "\e[32m3. Войти под ${NEW_USER} с паролем ${NEW_USER_PASS} в директорию /home/${NEW_USER}/test-bed\e[0m"
 echo
 echo
-echo -е "\e[32m4. Выполнить команду 'docker compose up -d'\e[0м"
+echo -е "\e[32m4. Выполнить команду 'docker compose up -d'\e[0m"
 echo
 echo
 
@@ -151,16 +151,16 @@ echo "*************************************************************************"
 echo "*****************         Что сделано           *************************"
 echo "*************************************************************************"
 
-echo -е "\e[32mСоздан новый пользователь '${NEW_USER}' с паролем '${NEW_USER_PASS}'\e[0м"
-echo -е "\e[32mФайлы в: /home/$NEW_USER/test-bed\e[0м" |& tee -а ${LOG_FILE_NAME}
+echo -е "\e[32mСоздан новый пользователь '${NEW_USER}' с паролем '${NEW_USER_PASS}'\e[0m"
+echo -е "\e[32mФайлы в: /home/$NEW_USER/test-bed\e[0m" |& tee -а ${LOG_FILE_NAME}
 
-echo -е "\e[32mJenkins на адресе ${IP_ADDRESS}:8888\e[0м" |& tee -а ${LOG_FILE_NAME}
-echo -е "\e[32mSelenoid на адресе ${IP_ADDRESS}:4444/wd/hub\e[0м" |& tee -а ${LOG_FILE_NAME}
-echo -е "\e[32mSelenoid-UI на адресе ${IP_ADDRESS}:8080\e[0м" |& tee -а ${LOG_FILE_NAME}
+echo -е "\e[32mJenkins на адресе ${IP_ADDRESS}:8888\e[0m" |& tee -а ${LOG_FILE_NAME}
+echo -е "\e[32mSelenoid на адресе ${IP_ADDRESS}:4444/wd/hub\e[0m" |& tee -а ${LOG_FILE_NAME}
+echo -е "\e[32mSelenoid-UI на адресе ${IP_ADDRESS}:8080\e[0m" |& tee -а ${LOG_FILE_NAME}
 
-echo -е "\e[32mВсе логи в файле '${LOG_FILE_NAME}'\e[0м"
+echo -е "\e[32mВсе логи в файле '${LOG_FILE_NAME}'\e[0m"
 
-echo -е "\e[32mВойдите под '${NEW_USER}' с паролем '${NEW_USER_PASS}' или ssh ${NEW_USER}@${IP_ADDRESS}\e[0м"
+echo -е "\e[32mВойдите под '${NEW_USER}' с паролем '${NEW_USER_PASS}' или ssh ${NEW_USER}@${IP_ADDRESS}\e[0m"
 
 echo "Запустился скрипт: $TIME_START" |& tee -а ${LOG_FILE_NAME}
 echo "Конец выполнения скрипта: $TIME_END" |& tee -а ${LOG_FILE_NAME}
