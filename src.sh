@@ -97,7 +97,7 @@ do
     docker pull selenoid/vnc:chrome_${RELEASE}.0
 done
 
-runuser -l ${NEW_USER} -c 'cd ~/test-bed && docker-compose up -d'
+runuser -l ${NEW_USER} -c 'cd ~/test-bed && docker compose up -d'
 
 echo -e "\e[32mПодождите 1 минуту.... Идет процесс установки....\e[0m"
 sleep 60
