@@ -1,15 +1,12 @@
 #!/bin/bash
-
 echo
 echo -e "   \e[33m!!! Скрипт должен быть запущен под root !!!\e[0m"
 echo
-
 LOG_FILE_NAME=exec-log.txt
 TIME_START=$(date)
 
-# Создание журнала установки
 echo -e "\e[33mДата и время создания журнала установки $(date)\e[0m" > ${LOG_FILE_NAME}
-echo -e "\e[33mЖурнал создан ${LOG_FILE_NAME}\e[0m"
+echo -e  "\e[33mЖурнал создан ${LOG_FILE_NAME}\e[0m"
 
 # Получение IP адреса машины
 IP_ADDRESS=$(curl -s https://ipv4.icanhazip.com/)
@@ -20,7 +17,6 @@ echo -e "\e[33mСоздадим нового пользователя\e[0m"
 sleep 3
 read -p "$(echo -e "\e[33mВведите нового пользователя: \e[0m")" NEW_USER
 
-# Создание пользователя и добавление в группу users
 useradd -m -g users ${NEW_USER}
 echo -e "\e[32m$(date) Новый пользователь ${NEW_USER}\e[0m" |& tee -a ${LOG_FILE_NAME}
 
@@ -30,18 +26,7 @@ usermod -aG sudo ${NEW_USER}
 echo -e "\e[32m$(date) Добавлен ${NEW_USER} в sudoers\e[0m" |& tee -a ${LOG_FILE_NAME}
 
 # Установка пароля для нового пользователя
-while true; do
-    read -s -p "$(echo -e "\e[33mСоздайте пароль для пользователя ${NEW_USER}: \e[0m")" NEW_USER_PASS
-    echo
-    read -s -p "$(echo -e "\e[33mПовторите пароль: \e[0m")" NEW_USER_PASS_CONFIRM
-    echo
-    if [ "$NEW_USER_PASS" == "$NEW_USER_PASS_CONFIRM" ]; then
-        break
-    else
-        echo -e "\e[31mПароли не совпадают. Попробуйте еще раз.\e[0m"
-    fi
-done
-
+read -p "$(echo -e "\e[33mСоздайте пароль для пользователя ${NEW_USER}: \e[0m")" NEW_USER_PASS
 echo -e "${NEW_USER_PASS}\n${NEW_USER_PASS}\n" | passwd ${NEW_USER}
 echo -e "\e[32m$(date) Новый пароль для ${NEW_USER} создан\e[0m" |& tee -a ${LOG_FILE_NAME}
 
@@ -84,8 +69,8 @@ if docker --version &> /dev/null; then
 else
     echo -e "\e[33m$(date) Установка Docker и запуск\e[0m" |& tee -a ${LOG_FILE_NAME}
     curl -sSL https://get.docker.com | sh |& tee -a ${LOG_FILE_NAME}
-    docker version |& tee -a ${LOG_FILE_NAME}
     usermod -aG docker ${NEW_USER}
+    echo -e "\e[32mDocker успешно установлен.\e[0m" |& tee -a ${LOG_FILE_NAME}
 fi
 
 # Проверка наличия Docker Compose
@@ -102,59 +87,56 @@ fi
 cp -r ./test-bed /home/${NEW_USER} |& tee -a ${LOG_FILE_NAME}
 chown -R ${NEW_USER}:users /home/${NEW_USER}/test-bed |& tee -a ${LOG_FILE_NAME}
 
-# Скачивание Chrome images для Selenoid
-echo -e "\e[33mСкачивание Chrome images для Selenoid\e[0m" |& tee -a ${LOG_FILE_NAME}
-CHROME_RELEASES="127 126 125"
-for RELEASE in $CHROME_RELEASES; do
-    echo -e "\e[33mУстановка Chrome ${RELEASE}.0\e[0m" |& tee -a ${LOG_FILE_NAME}
-    docker pull selenoid/vnc:chrome_${RELEASE}.0 |& tee -a ${LOG_FILE_NAME}
-done
-
-# Проверка и запуск контейнера Jenkins
+# Запуск контейнера Jenkins
 echo -e "\e[33mПроверка статуса контейнера Jenkins...\e[0m" |& tee -a ${LOG_FILE_NAME}
 JENKINS_CONTAINER=$(docker ps -q --filter "ancestor=jenkins/jenkins:lts")
 
 if [ -z "$JENKINS_CONTAINER" ]; then
     echo -e "\e[33mКонтейнер Jenkins не запущен. Запускаем контейнер...\e[0m" |& tee -a ${LOG_FILE_NAME}
     docker run -d --name jenkins --restart=always -p 8888:8080 -p 50000:50000 jenkins/jenkins:lts |& tee -a ${LOG_FILE_NAME}
+    
+    # Ждем 30 секунд, чтобы контейнер мог инициализироваться
+    echo -e "\e[33mЖдем 30 секунд, чтобы контейнер Jenkins инициализировался...\e[0m"
+    sleep 30
 else
     echo -e "\e[32mКонтейнер Jenkins уже запущен с ID: $JENKINS_CONTAINER\e[0m" |& tee -a ${LOG_FILE_NAME}
 fi
 
 # Установка Java 11 в контейнер Jenkins
 echo -e "\e[33m$(date) Установка Java 11 в контейнер Jenkins\e[0m" |& tee -a ${LOG_FILE_NAME}
-JENKINS_CONTAINER=$(docker ps --filter "ancestor=jenkins/jenkins:lts" --format "{{.ID}")
+JENKINS_CONTAINER=$(docker ps -q --filter "ancestor=jenkins/jenkins:lts")
 
 if [ -n "$JENKINS_CONTAINER" ]; then
+    # Подождем еще 10 секунд, чтобы контейнер был готов
+    echo -e "\e[33mПроверка готовности контейнера Jenkins для установки Java...\e[0m"
+    sleep 10
+
     docker exec -it $JENKINS_CONTAINER bash -c "apt-get update && apt-get install -y openjdk-11-jdk" |& tee -a ${LOG_FILE_NAME}
 else
     echo -e "\e[31mКонтейнер Jenkins не найден для установки Java 11.\e[0m" |& tee -a ${LOG_FILE_NAME}
 fi
 
-# Получение пароля Jenkins
-JENKINS_PASSWORD=$(docker logs jenkins | grep 'Please use the following password' | awk '{print $NF}')
-
-# Вывод информации
+# Получение пароля Jenkins и проверка статуса Selenoid
+echo
+echo
+JENKINS_PASSWORD=$(docker exec -t $JENKINS_CONTAINER cat /var/jenkins_home/secrets/initialAdminPassword)
+echo "*******************************************************************************"
+echo -e "*************   \e[32mПароль Jenkins при первом запуске\e[0m   ***************************"
+echo "*******************************************************************************"
+echo
+echo
 echo -e "\e[32mПароль Jenkins при первом запуске: ${JENKINS_PASSWORD}\e[0m" |& tee -a ${LOG_FILE_NAME}
+echo
 echo -e "\e[32mSelenoid статус: $(curl -s $IP_ADDRESS:4444/wd/hub/status)\e[0m" |& tee -a ${LOG_FILE_NAME}
 echo -e "\e[32mSelenoid UI статус: $(curl -s $IP_ADDRESS:8080/status)\e[0m" |& tee -a ${LOG_FILE_NAME}
+echo
 echo -e "\e[32mТеперь можно проверить Jenkins на: http://$IP_ADDRESS:8888 с паролем $JENKINS_PASSWORD\e[0m" |& tee -a ${LOG_FILE_NAME}
+echo
 
-# Остановка контейнеров
+# Остановка контейров
 echo -e "\e[33mОстановка контейнеров, установленных по этому скрипту...\e[0m" |& tee -a ${LOG_FILE_NAME}
-docker-compose -f /home/${NEW_USER}/test-bed/docker-compose.yml down |& tee -a ${LOG_FILE_NAME}
+docker stop jenkins
 
-# Проверка оставшихся запущенных контейнеров
-RUNNING_CONTAINERS=$(docker ps -q)
-if [ -z "$RUNNING_CONTAINERS" ]; then
-    echo -e "\e[32mВсе контейнеры, установленные по этому скрипту, успешно остановлены.\e[0m" |& tee -a ${LOG_FILE_NAME}
-else
-    echo -e "\e[31mНекоторые контейнеры все еще работают:\e[0m" |& tee -a ${LOG_FILE_NAME}
-    docker ps |& tee -a ${LOG_FILE_NAME}
-fi
-
-# Итоги работы скрипта
-TIME_END=$(date)
 echo "*************************************************************************"
 echo -e "****************   \e[32mПродолжим настройку стенда\e[0m   *************************"
 echo "*************************************************************************"
@@ -172,9 +154,10 @@ echo
 echo -e "\e[32mВсе логи в файле '${LOG_FILE_NAME}'\e[0m"
 echo
 echo -e "\e[32mЗапустился скрипт: $TIME_START\e[0m" |& tee -a ${LOG_FILE_NAME}
+TIME_END=$(date)
 echo -e "\e[32mКонец выполнения скрипта: $TIME_END\e[0m" |& tee -a ${LOG_FILE_NAME}
 
-# Инструкции для нового пользователя
+# Завершение работы
 echo -e "\e[33mТеперь зайдите под пользователем ${NEW_USER} и выполните следующие команды:\e[0m"
-echo -e "\e[32mcd /home/${NEW_USER}/test-bed\e[0m"
-echo -e "\e[32mdocker-compose up -d\e[0m"
+echo -e "\e[33mcd /home/${NEW_USER}/test-bed\e[0m"
+echo -e "\e[33mdocker-compose up -d\e[0m"
