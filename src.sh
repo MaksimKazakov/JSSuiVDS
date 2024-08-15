@@ -49,12 +49,12 @@ echo -e "\e[32m$(date) Права /home/${NEW_USER}/.ssh обновлены\e[0m
 
 # Установка софта
 echo "*************************************************************************"
-echo -e "**************   \e[33mУстановим Java, Docker, Selenoid\e[0m   ***********************"
+echo -e "**************   \e[33mУстановим Java, Docker, Selenoid\e[0m   *********************"
 echo "*************************************************************************"
 echo
 echo -e " \e[33mПроизведем общее обновление системы\e[0m"
 apt update && apt upgrade -y |& tee -a ${LOG_FILE_NAME}
-
+echo
 # Установка JDK
 echo -e "\e[32m$(date) Установка JDK - 17\e[0m" |& tee -a ${LOG_FILE_NAME}
 apt install openjdk-17-jdk -y |& tee -a ${LOG_FILE_NAME}
@@ -135,16 +135,16 @@ cd /home/${NEW_USER}/test-bed
 
 docker-compose stop |& tee -a ${LOG_FILE_NAME}
 
-echo -e "\e[32m2. Проверка состояния контейнеров после остановки:\e[0m" |& tee -а ${LOG_FILE_NAME}
+echo -e "\e[32m2. Проверка состояния контейнеров после остановки:\e[0m" |& tee -a ${LOG_FILE_NAME}
 echo
 echo
-docker ps -a |& tee -а ${LOG_FILE_NAME}
+docker ps -a |& tee -a ${LOG_FILE_NAME}
 
 if [ "$(docker ps -q)" == "" ]; then
-    echo -e "\e[32mВсе контейнеры успешно остановлены.\e[0m" |& tee -а ${LOG_FILE_NAME}
+    echo -e "\e[32mВсе контейнеры успешно остановлены.\e[0m" |& tee -a ${LOG_FILE_NAME}
 else
-    echo -e "Некоторые контейнеры все еще работают:\e[0m" |& tee -а ${LOG_FILE_NAME}
-    docker ps |& tee -а ${LOG_FILE_NAME}
+    echo -e "Некоторые контейнеры все еще работают:\e[0m" |& tee -a ${LOG_FILE_NAME}
+    docker ps |& tee -a ${LOG_FILE_NAME}
 fi
 
 echo -e "\e[32m3. Войти под ${NEW_USER} с паролем ${NEW_USER_PASS} в директорию /home/${NEW_USER}/test-bed\e[0m"
