@@ -3,15 +3,15 @@
 LOG_FILE_NAME=uninstall-log.txt
 TIME_START=$(date)
 
-echo "Дата и время начала удаления $(date)" > ${LOG_FILE_NAME}
-echo "Журнал удаления создан ${LOG_FILE_NAME}"
+echo "  Дата и время начала удаления $(date)" > ${LOG_FILE_NAME}
+echo "  Журнал удаления создан ${LOG_FILE_NAME}"
 
 # Получение IP адреса машины
 IP_ADDRESS=$(curl -s https://ipv4.icanhazip.com/)
-echo "$(date) IP address of this machine ${IP_ADDRESS}" |& tee -a ${LOG_FILE_NAME}
+echo "  $(date) IP address of this machine ${IP_ADDRESS}" |& tee -a ${LOG_FILE_NAME}
 
 # Удаление пользователя
-read -p "Введите имя пользователя, которого хотите удалить: " NEW_USER
+read -p "   Введите имя пользователя, которого хотите удалить: " NEW_USER
 if id "$NEW_USER" &>/dev/null; then
     echo "Удаление пользователя ${NEW_USER}..."
     userdel -r ${NEW_USER}
