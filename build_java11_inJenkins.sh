@@ -1,11 +1,15 @@
 #!/bin/bash
 
+echo
 echo -e "   \e[33m!!! Скрипт должен быть запущен под root !!!\e[0m"
+echo
+
 LOG_FILE_NAME=exec-log.txt
 TIME_START=$(date)
 
+# Создание журнала установки
 echo -e "\e[33mДата и время создания журнала установки $(date)\e[0m" > ${LOG_FILE_NAME}
-echo -e  "\e[33mЖурнал создан ${LOG_FILE_NAME}\e[0m"
+echo -e "\e[33mЖурнал создан ${LOG_FILE_NAME}\e[0m"
 
 # Получение IP адреса машины
 IP_ADDRESS=$(curl -s https://ipv4.icanhazip.com/)
@@ -16,6 +20,7 @@ echo -e "\e[33mСоздадим нового пользователя\e[0m"
 sleep 3
 read -p "$(echo -e "\e[33mВведите нового пользователя: \e[0m")" NEW_USER
 
+# Создание пользователя и добавление в группу users
 useradd -m -g users ${NEW_USER}
 echo -e "\e[32m$(date) Новый пользователь ${NEW_USER}\e[0m" |& tee -a ${LOG_FILE_NAME}
 
@@ -25,9 +30,20 @@ usermod -aG sudo ${NEW_USER}
 echo -e "\e[32m$(date) Добавлен ${NEW_USER} в sudoers\e[0m" |& tee -a ${LOG_FILE_NAME}
 
 # Установка пароля для нового пользователя
-read -p "$(echo -e "\e[33mСоздайте пароль для пользователя ${NEW_USER}: \e[0m")" NEW_USER_PASS
+while true; do
+    read -s -p "$(echo -e "\e[33mСоздайте пароль для пользователя ${NEW_USER}: \e[0m")" NEW_USER_PASS
+    echo
+    read -s -p "$(echo -e "\e[33mПовторите пароль: \e[0m")" NEW_USER_PASS_CONFIRM
+    echo
+    if [ "$NEW_USER_PASS" == "$NEW_USER_PASS_CONFIRM" ]; then
+        break
+    else
+        echo -e "\e[31mПароли не совпадают. Попробуйте еще раз.\e[0m"
+    fi
+done
+
 echo -e "${NEW_USER_PASS}\n${NEW_USER_PASS}\n" | passwd ${NEW_USER}
-echo "\e[32m$(date) Новый пароль для ${NEW_USER} создан\e[0m" |& tee -a ${LOG_FILE_NAME}
+echo -e "\e[32m$(date) Новый пароль для ${NEW_USER} создан\e[0m" |& tee -a ${LOG_FILE_NAME}
 
 # Настройка SSH ключей для нового пользователя
 echo -e "\e[33mУстановим ключи ssh для /home/${NEW_USER}\e[0m" |& tee -a ${LOG_FILE_NAME}
@@ -89,28 +105,23 @@ chown -R ${NEW_USER}:users /home/${NEW_USER}/test-bed |& tee -a ${LOG_FILE_NAME}
 # Скачивание Chrome images для Selenoid
 echo -e "\e[33mСкачивание Chrome images для Selenoid\e[0m" |& tee -a ${LOG_FILE_NAME}
 CHROME_RELEASES="127 126 125"
-for RELEASE in $CHROME_RELEASES
-do
+for RELEASE in $CHROME_RELEASES; do
     echo -e "\e[33mУстановка Chrome ${RELEASE}.0\e[0m" |& tee -a ${LOG_FILE_NAME}
     docker pull selenoid/vnc:chrome_${RELEASE}.0 |& tee -a ${LOG_FILE_NAME}
 done
 
-# Запуск Docker Compose
-runuser -l ${NEW_USER} -c 'cd ~/test-bed && docker-compose up -d' |& tee -a ${LOG_FILE_NAME}
-
-# Подождать, чтобы контейнеры запустились
-echo -e "\e[33mПодождите 1 минуту, чтобы контейнеры запустились\e[0m" |& tee -a ${LOG_FILE_NAME}
-sleep 60
-clear
-
 # Установка Java 11 в контейнер Jenkins
+echo -e "\e[33m$(date) Установка Java 11 в контейнер Jenkins\e[0m" |& tee -a ${LOG_FILE_NAME}
 JENKINS_CONTAINER=$(docker ps --filter "ancestor=jenkins/jenkins:lts" --format "{{.ID}}")
 
-echo -e "\e[33m$(date) Установка Java 11 в контейнер Jenkins\e[0m" |& tee -a ${LOG_FILE_NAME}
-docker exec -u root $JENKINS_CONTAINER bash -c 'curl -LO https://download.java.net/java/GA/jdk11/9/GPL/openjdk-11.0.2_linux-x64_bin.tar.gz && tar -xzf openjdk-11.0.2_linux-x64_bin.tar.gz -C /opt && rm openjdk-11.0.2_linux-x64_bin.tar.gz' |& tee -a ${LOG_FILE_NAME}
-
-docker exec -u root $JENKINS_CONTAINER bash -c 'echo "export JAVA_HOME=/opt/jdk-11.0.2" >> /etc/profile && echo "export PATH=\$JAVA_HOME/bin:\$PATH" >> /etc/profile' |& tee -a ${LOG_FILE_NAME}
-docker exec -u root $JENKINS_CONTAINER bash -c 'source /etc/profile && echo "JAVA_HOME установлен: \$JAVA_HOME"' |& tee -a ${LOG_FILE_NAME}
+if [ -n "$JENKINS_CONTAINER" ]; then
+    docker exec -u root $JENKINS_CONTAINER bash -c 'apt update && apt install -y openjdk-11-jdk' |& tee -a ${LOG_FILE_NAME}
+    docker exec -u root $JENKINS_CONTAINER bash -c 'echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> /etc/profile'
+    echo -e "\e[32m$(date) Java 11 успешно установлена в контейнере Jenkins.\e[0m" |& tee -a ${LOG_FILE_NAME}
+else
+    echo -e "\e[31mКонтейнер Jenkins не запущен. Пожалуйста, убедитесь, что контейнер Jenkins запущен перед запуском этого скрипта.\e[0m" |& tee -a ${LOG_FILE_NAME}
+    exit 1
+fi
 
 # Получение пароля Jenkins и проверка статуса Selenoid
 echo
@@ -128,10 +139,11 @@ echo -e "\e[32mSelenoid UI статус: $(curl -s $IP_ADDRESS:8080/status)\e[0m
 echo
 echo -e "\e[32mТеперь можно проверить Jenkins на: http://$IP_ADDRESS:8888 с паролем $JENKINS_PASSWORD\e[0m" |& tee -a ${LOG_FILE_NAME}
 echo
+
 # Остановка контейнеров
 echo -e "\e[33mОстановка контейнеров, установленных по этому скрипту...\e[0m" |& tee -a ${LOG_FILE_NAME}
 docker-compose -f /home/${NEW_USER}/test-bed/docker-compose.yml down |& tee -a ${LOG_FILE_NAME}
-echo
+
 # Проверка оставшихся запущенных контейнеров
 RUNNING_CONTAINERS=$(docker ps -q)
 if [ -z "$RUNNING_CONTAINERS" ]; then
@@ -140,13 +152,12 @@ else
     echo -e "\e[31mНекоторые контейнеры все еще работают:\e[0m" |& tee -a ${LOG_FILE_NAME}
     docker ps |& tee -a ${LOG_FILE_NAME}
 fi
-echo
+
 # Итоги работы скрипта
 TIME_END=$(date)
 echo "*************************************************************************"
 echo -e "****************   \e[32mПродолжим настройку стенда\e[0m   *************************"
 echo "*************************************************************************"
-echo
 echo
 echo -e "\e[32mСоздан новый пользователь '${NEW_USER}' с паролем '${NEW_USER_PASS}'\e[0m"
 echo
@@ -161,6 +172,9 @@ echo
 echo -e "\e[32mВсе логи в файле '${LOG_FILE_NAME}'\e[0m"
 echo
 echo -e "\e[32mЗапустился скрипт: $TIME_START\e[0m" |& tee -a ${LOG_FILE_NAME}
-echo
 echo -e "\e[32mКонец выполнения скрипта: $TIME_END\e[0m" |& tee -a ${LOG_FILE_NAME}
-echo
+
+# Инструкции для нового пользователя
+echo -e "\e[33mТеперь зайдите под пользователем ${NEW_USER} и выполните следующие команды:\e[0m"
+echo -e "\e[32mcd /home/${NEW_USER}/test-bed\e[0m"
+echo -e "\e[32mdocker-compose up -d\e[0m"
