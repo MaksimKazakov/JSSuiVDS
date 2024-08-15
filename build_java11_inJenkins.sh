@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo -e "\e[33mСкрипт запускать под рутом\e[0m"
+echo -e "   \e[33m!!! Скрипт должен быть запущен под root !!!\e[0m"
 LOG_FILE_NAME=exec-log.txt
 TIME_START=$(date)
 
@@ -21,7 +21,7 @@ echo -e "\e[32m$(date) Новый пользователь ${NEW_USER}\e[0m" |& 
 
 # Добавление нового пользователя в sudoers
 echo -e "\e[33mДобавление ${NEW_USER} в sudoers\e[0m"
-usermod -aG sudo ${NEW_USER}ls -la
+usermod -aG sudo ${NEW_USER}
 echo -e "\e[32m$(date) Добавлен ${NEW_USER} в sudoers\e[0m" |& tee -a ${LOG_FILE_NAME}
 
 # Установка пароля для нового пользователя
