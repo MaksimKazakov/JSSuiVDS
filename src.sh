@@ -74,7 +74,14 @@ curl -sSL https://get.docker.com | sh
 docker version >> ${LOG_FILE_NAME}
 usermod -aG docker ${NEW_USER}
 echo
-echo -e "\e[33m$(date) Установка docker compose как docker plug-in\e[0m" |& tee -a ${LOG_FILE_NAME}
+echo "$(date) Установка docker-compose..." |& tee -a ${LOG_FILE_NAME}
+apt-get install docker-compose -y
+
+echo "$(date) Версия docker-compose: " |& tee -a ${LOG_FILE_NAME}
+docker-compose version
+
+
+echo -e "\e[33m$(date) Установка docker-compose как docker plug-in\e[0m" |& tee -a ${LOG_FILE_NAME}
 DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
 mkdir -p $DOCKER_CONFIG/cli-plugins
 curl -SL https://github.com/docker/compose/releases/download/v2.29.1/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
@@ -97,7 +104,7 @@ do
     docker pull selenoid/vnc:chrome_${RELEASE}.0
 done
 
-runuser -l ${NEW_USER} -c 'cd ~/test-bed && docker compose up -d'
+runuser -l ${NEW_USER} -c 'cd ~/test-bed && docker-compose up -d'
 
 echo -e "\e[32mПодождите 1 минуту.... Идет процесс установки....\e[0m"
 sleep 60
@@ -152,15 +159,15 @@ echo "*****************         Что сделано           ****************
 echo "*************************************************************************"
 
 echo -e "\e[32mСоздан новый пользователь '${NEW_USER}' с паролем '${NEW_USER_PASS}'\e[0m"
-echo -e "\e[32mФайлы в: /home/$NEW_USER/test-bed\e[0m" |& tee -а ${LOG_FILE_NAME}
+echo -e "\e[32mФайлы в : /home/$NEW_USER/test-bed\e[0m" |& tee -a ${LOG_FILE_NAME}
 
-echo -e "\e[32mJenkins на адресе ${IP_ADDRESS}:8888\e[0m" |& tee -а ${LOG_FILE_NAME}
-echo -e "\e[32mSelenoid на адресе ${IP_ADDRESS}:4444/wd/hub\e[0m" |& tee -а ${LOG_FILE_NAME}
-echo -e "\e[32mSelenoid-UI на адресе ${IP_ADDRESS}:8080\e[0m" |& tee -а ${LOG_FILE_NAME}
+echo -e "\e[32mJenkins на адресе ${IP_ADDRESS}:8888\e[0m" |& tee -a ${LOG_FILE_NAME}
+echo -e "\e[32mSelenoid на адресе ${IP_ADDRESS}:4444/wd/hub\e[0m" |& tee -a ${LOG_FILE_NAME}
+echo -e "\e[32mSelenoid-UI на адресе ${IP_ADDRESS}:8080\e[0m" |& tee -a ${LOG_FILE_NAME}
 
 echo -e "\e[32mВсе логи в файле '${LOG_FILE_NAME}'\e[0m"
 
 echo -e "\e[32mВойдите под '${NEW_USER}' с паролем '${NEW_USER_PASS}' или ssh ${NEW_USER}@${IP_ADDRESS}\e[0m"
 
-echo "Запустился скрипт: $TIME_START" |& tee -а ${LOG_FILE_NAME}
-echo "Конец выполнения скрипта: $TIME_END" |& tee -а ${LOG_FILE_NAME}
+echo "Запустился скрипт: $TIME_START" |& tee -a ${LOG_FILE_NAME}
+echo "Конец выполнения скрипта: $TIME_END" |& tee -a ${LOG_FILE_NAME}
