@@ -108,7 +108,7 @@ runuser -l ${NEW_USER} -c 'cd ~/test-bed && docker-compose up -d'
 
 echo -e "\e[33mПодождите 1 минуту.... Идет процесс установки....\e[0m"
 sleep 60
-
+clear
 echo
 
 JENKINS_PASSWORD=$(docker exec -t test-bed_jenkins_1 cat /var/jenkins_home/secrets/initialAdminPassword)
