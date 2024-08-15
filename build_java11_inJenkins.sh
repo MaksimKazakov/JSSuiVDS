@@ -110,35 +110,35 @@ for RELEASE in $CHROME_RELEASES; do
     docker pull selenoid/vnc:chrome_${RELEASE}.0 |& tee -a ${LOG_FILE_NAME}
 done
 
-# Установка Java 11 в контейнер Jenkins
-echo -e "\e[33m$(date) Установка Java 11 в контейнер Jenkins\e[0m" |& tee -a ${LOG_FILE_NAME}
-JENKINS_CONTAINER=$(docker ps --filter "ancestor=jenkins/jenkins:lts" --format "{{.ID}}")
+# Проверка и запуск контейнера Jenkins
+echo -e "\e[33mПроверка статуса контейнера Jenkins...\e[0m" |& tee -a ${LOG_FILE_NAME}
+JENKINS_CONTAINER=$(docker ps -q --filter "ancestor=jenkins/jenkins:lts")
 
-if [ -n "$JENKINS_CONTAINER" ]; then
-    docker exec -u root $JENKINS_CONTAINER bash -c 'apt update && apt install -y openjdk-11-jdk' |& tee -a ${LOG_FILE_NAME}
-    docker exec -u root $JENKINS_CONTAINER bash -c 'echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64" >> /etc/profile'
-    echo -e "\e[32m$(date) Java 11 успешно установлена в контейнере Jenkins.\e[0m" |& tee -a ${LOG_FILE_NAME}
+if [ -z "$JENKINS_CONTAINER" ]; then
+    echo -e "\e[33mКонтейнер Jenkins не запущен. Запускаем контейнер...\e[0m" |& tee -a ${LOG_FILE_NAME}
+    docker run -d --name jenkins --restart=always -p 8888:8080 -p 50000:50000 jenkins/jenkins:lts |& tee -a ${LOG_FILE_NAME}
 else
-    echo -e "\e[31mКонтейнер Jenkins не запущен. Пожалуйста, убедитесь, что контейнер Jenkins запущен перед запуском этого скрипта.\e[0m" |& tee -a ${LOG_FILE_NAME}
-    exit 1
+    echo -e "\e[32mКонтейнер Jenkins уже запущен с ID: $JENKINS_CONTAINER\e[0m" |& tee -a ${LOG_FILE_NAME}
 fi
 
-# Получение пароля Jenkins и проверка статуса Selenoid
-echo
-echo
-JENKINS_PASSWORD=$(docker exec -t $JENKINS_CONTAINER cat /var/jenkins_home/secrets/initialAdminPassword)
-echo "*******************************************************************************"
-echo -e "*************   \e[32mПароль Jenkins при первом запуске\e[0m   ***************************"
-echo "*******************************************************************************"
-echo
-echo
+# Установка Java 11 в контейнер Jenkins
+echo -e "\e[33m$(date) Установка Java 11 в контейнер Jenkins\e[0m" |& tee -a ${LOG_FILE_NAME}
+JENKINS_CONTAINER=$(docker ps --filter "ancestor=jenkins/jenkins:lts" --format "{{.ID}")
+
+if [ -n "$JENKINS_CONTAINER" ]; then
+    docker exec -it $JENKINS_CONTAINER bash -c "apt-get update && apt-get install -y openjdk-11-jdk" |& tee -a ${LOG_FILE_NAME}
+else
+    echo -e "\e[31mКонтейнер Jenkins не найден для установки Java 11.\e[0m" |& tee -a ${LOG_FILE_NAME}
+fi
+
+# Получение пароля Jenkins
+JENKINS_PASSWORD=$(docker logs jenkins | grep 'Please use the following password' | awk '{print $NF}')
+
+# Вывод информации
 echo -e "\e[32mПароль Jenkins при первом запуске: ${JENKINS_PASSWORD}\e[0m" |& tee -a ${LOG_FILE_NAME}
-echo
 echo -e "\e[32mSelenoid статус: $(curl -s $IP_ADDRESS:4444/wd/hub/status)\e[0m" |& tee -a ${LOG_FILE_NAME}
 echo -e "\e[32mSelenoid UI статус: $(curl -s $IP_ADDRESS:8080/status)\e[0m" |& tee -a ${LOG_FILE_NAME}
-echo
 echo -e "\e[32mТеперь можно проверить Jenkins на: http://$IP_ADDRESS:8888 с паролем $JENKINS_PASSWORD\e[0m" |& tee -a ${LOG_FILE_NAME}
-echo
 
 # Остановка контейнеров
 echo -e "\e[33mОстановка контейнеров, установленных по этому скрипту...\e[0m" |& tee -a ${LOG_FILE_NAME}
