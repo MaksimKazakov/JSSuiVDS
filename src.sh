@@ -97,7 +97,7 @@ chown -R ${NEW_USER}:users /home/${NEW_USER}/test-bed |& tee -a ${LOG_FILE_NAME}
 # Скачивание Chrome images для Selenoid
 echo -e "\e[33mСкачивается chrome images для selenoid\e[0m" |& tee -a ${LOG_FILE_NAME}
 
-CHROME_RELEASES="127 126 125"
+CHROME_RELEASES="128 127 126"
 for RELEASE in $CHROME_RELEASES
 do
     echo -e "\e[33mУстановка chrome ${RELEASE}.0\e[0m" |& tee -a ${LOG_FILE_NAME}
