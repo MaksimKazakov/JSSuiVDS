@@ -20,4 +20,5 @@
 8. После установки Jenkins установить плагины (http://${IP_ADDRESS}:8888/manage/pluginManager/available):
     - Allure
     - Text File Operations
+    - Post build task
     
